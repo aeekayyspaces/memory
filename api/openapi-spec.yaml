@@ -1,0 +1,1273 @@
+openapi: '3.0.3'
+info:
+  title: "Memory API"
+  version: "0.1.0"
+  description: "Keep memories with this API. Send daily memories to yourself\nfor self-keeping\n"
+  contact:
+    email: "farye@aeekay.com"
+servers:
+  - url: https://api.mem.aeekay.co/v1
+tags:
+  - name: "child"
+    description: "Management of children."
+  - name: "memory"
+    description: "Moments in time that we want to remember."
+  - name: "authn"
+    description: "Related to authentication."
+  - name: "event"
+    description: "Related to events."
+  - name: "internal"
+    description: "A tag for internal APIs. These APIs should not be exposed to the public."
+  - name: "identity"
+    description: "API related to the identity of individual users."
+paths:
+  /auth/login:
+    post:
+      description: "Login into the platform. Returns a session ID for valid sessions."
+      operationId: "login"
+      tags:
+        - "authn"
+      responses:
+        default:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "message"
+                  - "code"
+                properties:
+                  message:
+                    type: "string"
+                  code:
+                    type: "integer"
+                    minimum: 100
+                    maximum: 600
+        200:
+          description: "Establish an active session. The sessions ID will be stored in a cookie."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "id"
+                properties:
+                  id:
+                    type: "string"
+                    format: "uuid"
+  /auth/logout:
+    post:
+      description: "Terminates an active session."
+      operationId: "logout"
+      tags:
+        - "authn"
+      responses:
+        default:
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "message"
+                  - "code"
+                properties:
+                  message:
+                    type: "string"
+                  code:
+                    type: "integer"
+                    minimum: 100
+                    maximum: 600
+        200:
+          description: "Successfully temrinates a session."
+          content:
+            application/json: {}
+  /child:
+    get:
+      description: "Returns all of your children."
+      operationId: "getChildren"
+      tags:
+        - "child"
+      responses:
+        default:
+          description: "Unexpected error"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "message"
+                  - "code"
+                properties:
+                  message:
+                    type: "string"
+                  code:
+                    type: "integer"
+                    minimum: 100
+                    maximum: 600
+        200:
+          description: "A list of children that belong to you. It's important to note that the children have to belong to you."
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  allOf:
+                    -
+                      type: "object"
+                      required:
+                        - "id"
+                        - "name"
+                      properties:
+                        id:
+                          type: "string"
+                          format: "uuid"
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        name:
+                          type: "string"
+                        active:
+                          type: "boolean"
+                          default: "True"
+                        created:
+                          type: "string"
+                          format: "date-time"
+                        modified:
+                          type: "string"
+                          format: "date-time"
+    post:
+      description: "Adds a new child to the system. Hopefully yours."
+      operationId: "createChild"
+      tags:
+        - "child"
+      requestBody:
+        description: "The engineer to add"
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                -
+                  type: "object"
+                  required:
+                    - "id"
+                    - "name"
+                  properties:
+                    id:
+                      type: "string"
+                      format: "uuid"
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    name:
+                      type: "string"
+                    active:
+                      type: "boolean"
+                      default: "True"
+                    created:
+                      type: "string"
+                      format: "date-time"
+                    modified:
+                      type: "string"
+                      format: "date-time"
+      responses:
+        201:
+          description: "A new engineer is added."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+  "/child/{childId}":
+    get:
+      description: "Returns a specific child of yours."
+      operationId: "getChildById"
+      tags:
+        - "child"
+      parameters:
+        -
+          name: "childId"
+          in: "path"
+          description: "ID of Child to return"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        200:
+          description: "The unique ID of the child"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+    put:
+      description: "Adds a new child to the system. Hopefully yours."
+      operationId: "updateChildById"
+      tags:
+        - "child"
+      parameters:
+        -
+          name: "childId"
+          in: "path"
+          description: "ID of Child to return"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        201:
+          description: "A new engineer is added."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+  "/child/{name}":
+    get:
+      description: "Returns a specific child of yours."
+      operationId: "getChildByName"
+      tags:
+        - "child"
+      parameters:
+        -
+          name: "name"
+          in: "path"
+          description: "The name of Child to return"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "The unique ID of the child"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+    put:
+      description: "Adds a new child to the system. Hopefully yours."
+      operationId: "updateChildByName"
+      tags:
+        - "child"
+      parameters:
+        -
+          name: "name"
+          in: "path"
+          description: "The name of the child to retrieve"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        description: "The child whose information you want to update."
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                -
+                  type: "object"
+                  required:
+                    - "id"
+                    - "name"
+                  properties:
+                    id:
+                      type: "string"
+                      format: "uuid"
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    name:
+                      type: "string"
+                    active:
+                      type: "boolean"
+                      default: "True"
+                    created:
+                      type: "string"
+                      format: "date-time"
+                    modified:
+                      type: "string"
+                      format: "date-time"
+      responses:
+        201:
+          description: "A new engineer is added."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+        400:
+          description: "Could not update child's information."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "message"
+                  - "code"
+                properties:
+                  message:
+                    type: "string"
+                  code:
+                    type: "integer"
+        404:
+          description: "Child not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "message"
+                  - "code"
+                properties:
+                  message:
+                    type: "string"
+                  code:
+                    type: "integer"
+  /memory:
+    get:
+      description: "Returns all the memories that you have made to this point."
+      operationId: "getMemories"
+      tags:
+        - "memory"
+      responses:
+        default:
+          description: "Unexpected error"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "message"
+                  - "code"
+                properties:
+                  message:
+                    type: "string"
+                  code:
+                    type: "integer"
+                    minimum: 100
+                    maximum: 600
+        200:
+          description: "A list of memories."
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  allOf:
+                    -
+                      type: "object"
+                      required:
+                        - "id"
+                        - "name"
+                      properties:
+                        id:
+                          type: "string"
+                          format: "uuid"
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        name:
+                          type: "string"
+                        active:
+                          type: "boolean"
+                          default: "True"
+                        created:
+                          type: "string"
+                          format: "date-time"
+                        modified:
+                          type: "string"
+                          format: "date-time"
+                    -
+                      type: "object"
+                      required:
+                        - "description"
+                      properties:
+                        description:
+                          type: "string"
+                        blob_storage_url:
+                          type: "string"
+                        child:
+                          allOf:
+                            -
+                              type: "object"
+                              required:
+                                - "id"
+                                - "name"
+                              properties:
+                                id:
+                                  type: "string"
+                                  format: "uuid"
+                                  example: "123e4567-e89b-12d3-a456-426614174000"
+                                name:
+                                  type: "string"
+                                active:
+                                  type: "boolean"
+                                  default: "True"
+                                created:
+                                  type: "string"
+                                  format: "date-time"
+                                modified:
+                                  type: "string"
+                                  format: "date-time"
+    post:
+      description: "Adds a new memory to the system"
+      operationId: "createMemory"
+      tags:
+        - "memory"
+      requestBody:
+        description: "The memory to create"
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                -
+                  type: "object"
+                  required:
+                    - "id"
+                    - "name"
+                  properties:
+                    id:
+                      type: "string"
+                      format: "uuid"
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    name:
+                      type: "string"
+                    active:
+                      type: "boolean"
+                      default: "True"
+                    created:
+                      type: "string"
+                      format: "date-time"
+                    modified:
+                      type: "string"
+                      format: "date-time"
+                -
+                  type: "object"
+                  required:
+                    - "description"
+                  properties:
+                    description:
+                      type: "string"
+                    blob_storage_url:
+                      type: "string"
+                    child:
+                      allOf:
+                        -
+                          type: "object"
+                          required:
+                            - "id"
+                            - "name"
+                          properties:
+                            id:
+                              type: "string"
+                              format: "uuid"
+                              example: "123e4567-e89b-12d3-a456-426614174000"
+                            name:
+                              type: "string"
+                            active:
+                              type: "boolean"
+                              default: "True"
+                            created:
+                              type: "string"
+                              format: "date-time"
+                            modified:
+                              type: "string"
+                              format: "date-time"
+      responses:
+        201:
+          description: "A new memory is created."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+                  -
+                    type: "object"
+                    required:
+                      - "description"
+                    properties:
+                      description:
+                        type: "string"
+                      blob_storage_url:
+                        type: "string"
+                      child:
+                        allOf:
+                          -
+                            type: "object"
+                            required:
+                              - "id"
+                              - "name"
+                            properties:
+                              id:
+                                type: "string"
+                                format: "uuid"
+                                example: "123e4567-e89b-12d3-a456-426614174000"
+                              name:
+                                type: "string"
+                              active:
+                                type: "boolean"
+                                default: "True"
+                              created:
+                                type: "string"
+                                format: "date-time"
+                              modified:
+                                type: "string"
+                                format: "date-time"
+  "/memory/{memoryId}":
+    get:
+      summary: "Get a memory by ID"
+      operationId: "getMemoryById"
+      tags:
+        - "memory"
+      description: "Returns a specific memory"
+      parameters:
+        -
+          name: "memoryId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        200:
+          description: "The memory to retrun."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+                  -
+                    type: "object"
+                    required:
+                      - "description"
+                    properties:
+                      description:
+                        type: "string"
+                      blob_storage_url:
+                        type: "string"
+                      child:
+                        allOf:
+                          -
+                            type: "object"
+                            required:
+                              - "id"
+                              - "name"
+                            properties:
+                              id:
+                                type: "string"
+                                format: "uuid"
+                                example: "123e4567-e89b-12d3-a456-426614174000"
+                              name:
+                                type: "string"
+                              active:
+                                type: "boolean"
+                                default: "True"
+                              created:
+                                type: "string"
+                                format: "date-time"
+                              modified:
+                                type: "string"
+                                format: "date-time"
+    put:
+      summary: "Updates a memory by ID"
+      operationId: "updateMemoryById"
+      tags:
+        - "memory"
+      description: "Updates a specific memory based on ID"
+      parameters:
+        -
+          name: "memoryId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        200:
+          description: "The memory to return."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+                  -
+                    type: "object"
+                    required:
+                      - "description"
+                    properties:
+                      description:
+                        type: "string"
+                      blob_storage_url:
+                        type: "string"
+                      child:
+                        allOf:
+                          -
+                            type: "object"
+                            required:
+                              - "id"
+                              - "name"
+                            properties:
+                              id:
+                                type: "string"
+                                format: "uuid"
+                                example: "123e4567-e89b-12d3-a456-426614174000"
+                              name:
+                                type: "string"
+                              active:
+                                type: "boolean"
+                                default: "True"
+                              created:
+                                type: "string"
+                                format: "date-time"
+                              modified:
+                                type: "string"
+                                format: "date-time"
+        404:
+          description: "Memory not found"
+    delete:
+      summary: "Deletes a memory by ID"
+      operationId: "deleteMemory"
+      tags:
+        - "memory"
+      description: "Deletes a specific memory"
+      parameters:
+        -
+          name: "memoryId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        204:
+          description: "Memory deleted"
+        404:
+          description: "Memory not found"
+  /events:
+    get:
+      description: "Returns all the events in the system."
+      operationId: "getEvents"
+      tags:
+        - "event"
+        - "internal"
+      responses:
+        default:
+          description: "Unexpected error"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "message"
+                  - "code"
+                properties:
+                  message:
+                    type: "string"
+                  code:
+                    type: "integer"
+                    minimum: 100
+                    maximum: 600
+        200:
+          description: "A list of events."
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  allOf:
+                    -
+                      type: "object"
+                      required:
+                        - "id"
+                        - "name"
+                        - "event_type"
+                      properties:
+                        id:
+                          type: "string"
+                          format: "uuid"
+                          example: "123e4567-e89b-12d3-a456-426614174000"
+                        name:
+                          type: "string"
+                        event_type:
+                          type: "string"
+                        active:
+                          type: "boolean"
+                          default: "True"
+                        created:
+                          type: "string"
+                          format: "date-time"
+                        modified:
+                          type: "string"
+                          format: "date-time"            
+    post:
+      description: "Adds a new evemt to the system"
+      operationId: "createEvent"
+      tags:
+        - "event"
+        - "internal"
+      requestBody:
+        description: "The event to create"
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                -
+                  type: "object"
+                  required:
+                    - "id"
+                    - "name"
+                    - "event_type"
+                  properties:
+                    id:
+                      type: "string"
+                      format: "uuid"
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    name:
+                      type: "string"
+                    event_type:
+                      type: "string"
+                    active:
+                      type: "boolean"
+                      default: "True"
+                    created:
+                      type: "string"
+                      format: "date-time"
+                    modified:
+                      type: "string"
+                      format: "date-time"
+      responses:
+        201:
+          description: "A new event is created."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                      - "event_type"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      event_type:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+  "/event/{eventId}":
+    get:
+      summary: "Get a event by ID"
+      operationId: "getEventById"
+      tags:
+        - "event"
+        - "internal"
+      description: "Returns a specific event"
+      parameters:
+        -
+          name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        200:
+          description: "The event to return."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                      - "event_type"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      event_type:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+    put:
+      summary: "Updates a event by ID"
+      operationId: "updateEventById"
+      tags:
+        - "event"
+        - "internal"
+      description: "Updates a specific memory based on ID"
+      parameters:
+        -
+          name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        200:
+          description: "The event to update."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                      - "event_type"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      event_type:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+        404:
+          description: "Event not found"
+    delete:
+      summary: "Deletes an event by ID"
+      operationId: "deleteEventById"
+      tags:
+        - "event"
+        - "internal"
+      description: "Deletes a specific memory"
+      parameters:
+        -
+          name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        204:
+          description: "Event deleted"
+        404:
+          description: "Event not found"
+  "/identity/{identityId}":
+    get:
+      summary: "Get a identity by ID"
+      operationId: "getIdentityById"
+      tags:
+        - "identity"
+        - "internal"
+      description: "Returns a specific identity"
+      parameters:
+        -
+          name: "identityId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        200:
+          description: "The identity to return."
+          content:
+            application/json:
+              schema:
+                allOf:
+                  -
+                    type: "object"
+                    required:
+                      - "id"
+                      - "name"
+                    properties:
+                      id:
+                        type: "string"
+                        format: "uuid"
+                        example: "123e4567-e89b-12d3-a456-426614174000"
+                      name:
+                        type: "string"
+                      active:
+                        type: "boolean"
+                        default: "True"
+                      created:
+                        type: "string"
+                        format: "date-time"
+                      modified:
+                        type: "string"
+                        format: "date-time"
+components:
+  schemas:
+    ErrorModel:
+      type: "object"
+      required:
+        - "message"
+        - "code"
+      properties:
+        message:
+          type: "string"
+        code:
+          type: "integer"
+          minimum: 100
+          maximum: 600
+    Session:
+      type: "object"
+      required:
+        - "id"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+    Entity:
+      type: "object"
+      required:
+        - "id"
+        - "name"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: "string"
+        active:
+          type: "boolean"
+          default: "True"
+        created:
+          type: "string"
+          format: "date-time"
+        modified:
+          type: "string"
+          format: "date-time"
+    Event:
+      allOf:
+        -
+          type: "object"
+          required:
+            - "id"
+            - "name"
+            - "event_type"
+          properties:
+            id:
+              type: "string"
+              format: "uuid"
+              example: "123e4567-e89b-12d3-a456-426614174000"
+            name:
+              type: "string"
+            event_type:
+              type: "string"
+            active:
+              type: "boolean"
+              default: "True"
+            created:
+              type: "string"
+              format: "date-time"
+            modified:
+              type: "string"
+              format: "date-time"
+        -
+          type: "object"
+          required:
+            - "description"
+          properties:
+            description:
+              type: "string"
+            blob_storage_url:
+              type: "string"
+            child:
+              allOf:
+                -
+                  type: "object"
+                  required:
+                    - "id"
+                    - "name"
+                  properties:
+                    id:
+                      type: "string"
+                      format: "uuid"
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    name:
+                      type: "string"
+                    active:
+                      type: "boolean"
+                      default: "True"
+                    created:
+                      type: "string"
+                      format: "date-time"
+                    modified:
+                      type: "string"
+                      format: "date-time"
+    Memory:
+      allOf:
+        -
+          type: "object"
+          required:
+            - "id"
+            - "name"
+          properties:
+            id:
+              type: "string"
+              format: "uuid"
+              example: "123e4567-e89b-12d3-a456-426614174000"
+            name:
+              type: "string"
+            active:
+              type: "boolean"
+              default: "True"
+            created:
+              type: "string"
+              format: "date-time"
+            modified:
+              type: "string"
+              format: "date-time"
+        -
+          type: "object"
+          required:
+            - "description"
+          properties:
+            description:
+              type: "string"
+            blob_storage_url:
+              type: "string"
+            child:
+              allOf:
+                -
+                  type: "object"
+                  required:
+                    - "id"
+                    - "name"
+                  properties:
+                    id:
+                      type: "string"
+                      format: "uuid"
+                      example: "123e4567-e89b-12d3-a456-426614174000"
+                    name:
+                      type: "string"
+                    active:
+                      type: "boolean"
+                      default: "True"
+                    created:
+                      type: "string"
+                      format: "date-time"
+                    modified:
+                      type: "string"
+                      format: "date-time"
+    Child:
+      allOf:
+        -
+          type: "object"
+          required:
+            - "id"
+            - "name"
+          properties:
+            id:
+              type: "string"
+              format: "uuid"
+              example: "123e4567-e89b-12d3-a456-426614174000"
+            name:
+              type: "string"
+            active:
+              type: "boolean"
+              default: "True"
+            created:
+              type: "string"
+              format: "date-time"
+            modified:
+              type: "string"
+              format: "date-time"
+  securitySchemes:
+    api_key:
+      type: "apiKey"
+      name: "apiKey"
+      in: "header"
+    session:
+      type: "apiKey"
+      name: "session"
+      in: "cookie"
+
